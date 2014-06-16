@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string-array name="size_array">
+        <item>small</item>
+        <item>medium</item>
+        <item>large</item>
+        <item>extra-large</item>
+    </string-array>
+    
+    <string-array name="color_array">
+        <item>blue</item>
+        <item>black</item>
+        <item>red</item>
+        <item>green</item>
+    </string-array>
+    <string-array name="type_array">
+        <item>lineart</item>
+        <item>photo</item>
+        <item>faces</item>
+        <item>clipart</item>
+    </string-array>
+
+</resources>
