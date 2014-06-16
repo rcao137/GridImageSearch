@@ -49,19 +49,19 @@ public class ImageSearchActivity extends Activity {
 				startActivity(i);
 			}
 		});
-		
+
 		gvImageResult.setOnScrollListener(new EndlessScrollListener() {
 
 			@Override
 			public void onLoadMore(int page, int totalItemsCount) {
-        customLoadMoreDataFromApi(page); 
+				customLoadMoreDataFromApi(page); 
 			}
 
 			private void customLoadMoreDataFromApi(int page) {
 				pageNumber = page;
 				runQuery();
 			}
-			
+
 		});
 	}
 
@@ -71,7 +71,8 @@ public class ImageSearchActivity extends Activity {
 		if (resultCode == RESULT_OK && requestCode == REQUEST_CODE) {
 			// Extract name and position values from result extras
 			filter = (Filter) data.getSerializableExtra("filter");
-			Toast.makeText(getApplicationContext(), filter.getColor()+"|"+filter.getSize()+"|"+filter.getType()+filter.getSite(), Toast.LENGTH_SHORT).show();		}
+			// Toast.makeText(getApplicationContext(), filter.getColor()+"|"+filter.getSize()+"|"+filter.getType()+filter.getSite(), Toast.LENGTH_SHORT).show();		}
+		}
 	}
 
 	public boolean onCreateOptionsMenu(Menu menu) {
@@ -82,7 +83,7 @@ public class ImageSearchActivity extends Activity {
 
 
 	public void onSetfilterAction(MenuItem mi) {
-		Toast.makeText(getApplicationContext(), "action menu clicked", Toast.LENGTH_SHORT).show();
+		//		Toast.makeText(getApplicationContext(), "action menu clicked", Toast.LENGTH_SHORT).show();
 		if (filter == null)
 			filter = new Filter("medium", "blue", "car", null);
 		Intent i = new Intent(this, ImageFilterActivity.class);
@@ -101,9 +102,9 @@ public class ImageSearchActivity extends Activity {
 		imageResults.clear();
 		runQuery();
 	}
-	
-	 public void runQuery()
-	 {
+
+	public void runQuery()
+	{
 		String completeFilter;
 		String extraFilter;
 
