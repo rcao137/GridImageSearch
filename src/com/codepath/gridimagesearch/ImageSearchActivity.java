@@ -7,7 +7,10 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.Menu;
@@ -17,7 +20,6 @@ import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.EditText;
 import android.widget.GridView;
-import android.widget.Toast;
 
 import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.JsonHttpResponseHandler;
@@ -25,12 +27,12 @@ import com.loopj.android.http.JsonHttpResponseHandler;
 public class ImageSearchActivity extends Activity {
 	private final int REQUEST_CODE = 20;
 	private EditText edQuery;
-	private String searchQuery;
 	private GridView gvImageResult;
 	private ArrayList<ImageResult> imageResults = new ArrayList<ImageResult>();
-	ImageResultArrayAdapter imageAdapter;
+	private ImageResultArrayAdapter imageArrayAdapter;
+	private String searchQuery;
 	private Filter filter;
-	private int pageNumber= 0;
+	private int startNumber= 0;
 
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -38,10 +40,10 @@ public class ImageSearchActivity extends Activity {
 
 		setViews();
 
-		imageAdapter = new ImageResultArrayAdapter(this, imageResults);
-		gvImageResult.setAdapter(imageAdapter);
-		gvImageResult.setOnItemClickListener(new OnItemClickListener() {
+		imageArrayAdapter = new ImageResultArrayAdapter(this, imageResults);
+		gvImageResult.setAdapter(imageArrayAdapter);
 
+		gvImageResult.setOnItemClickListener(new OnItemClickListener() {
 			public void onItemClick(AdapterView<?> adapter, View parent, int position,
 					long id) {
 				Intent i = new Intent(getApplicationContext(), ImageDetailActivity.class);
@@ -51,28 +53,20 @@ public class ImageSearchActivity extends Activity {
 		});
 
 		gvImageResult.setOnScrollListener(new EndlessScrollListener() {
-
-			@Override
 			public void onLoadMore(int page, int totalItemsCount) {
+				startNumber = totalItemsCount;
 				customLoadMoreDataFromApi(page); 
 			}
-
-			private void customLoadMoreDataFromApi(int page) {
-				pageNumber = page;
+			private void customLoadMoreDataFromApi(int offset) {
 				runQuery();
 			}
-
 		});
+
 	}
 
-	// Return from EditItemActivity window
-	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-		// REQUEST_CODE is defined above
-		if (resultCode == RESULT_OK && requestCode == REQUEST_CODE) {
-			// Extract name and position values from result extras
-			filter = (Filter) data.getSerializableExtra("filter");
-			// Toast.makeText(getApplicationContext(), filter.getColor()+"|"+filter.getSize()+"|"+filter.getType()+filter.getSite(), Toast.LENGTH_SHORT).show();		}
-		}
+	private void setViews() {
+		edQuery = (EditText) findViewById(R.id.etQuery);
+		gvImageResult = (GridView) findViewById(R.id.gvImageResult);
 	}
 
 	public boolean onCreateOptionsMenu(Menu menu) {
@@ -81,9 +75,9 @@ public class ImageSearchActivity extends Activity {
 		return true;
 	}
 
-
 	public void onSetfilterAction(MenuItem mi) {
 		//		Toast.makeText(getApplicationContext(), "action menu clicked", Toast.LENGTH_SHORT).show();
+		// set the default filter
 		if (filter == null)
 			filter = new Filter("medium", "blue", "car", null);
 		Intent i = new Intent(this, ImageFilterActivity.class);
@@ -91,16 +85,24 @@ public class ImageSearchActivity extends Activity {
 		startActivityForResult(i, REQUEST_CODE);
 	}
 
-	private void setViews() {
-		edQuery = (EditText) findViewById(R.id.etQuery);
-		gvImageResult = (GridView) findViewById(R.id.gvImageResult);
-	}
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+		// REQUEST_CODE is defined above
+		if (resultCode == RESULT_OK && requestCode == REQUEST_CODE) {
+			// Extract name and position values from result extras
+			filter = (Filter) data.getSerializableExtra("filter");
+			startNumber = 0;
+			imageResults.clear();
+			imageArrayAdapter.clear();
+			runQuery();
+		}
+	}	
 
 	public void submitQuery(View v)
-	{
-		pageNumber = 0;
-		imageResults.clear();
-		runQuery();
+	{ 
+			startNumber = 0;
+			imageResults.clear();
+			imageArrayAdapter.clear();
+			runQuery();
 	}
 
 	public void runQuery()
@@ -117,10 +119,10 @@ public class ImageSearchActivity extends Activity {
 			String extraTypeFilter = "&imgtype="+filter.getType();
 			extraFilter = extraSizeFilter + extraColorFilter + extraSiteFilter + extraTypeFilter;
 
-			completeFilter  ="https://ajax.googleapis.com/ajax/services/search/images?rsz=8&" + "start="+ pageNumber +"&v=1.0"+extraFilter;
+			completeFilter  ="https://ajax.googleapis.com/ajax/services/search/images?rsz=8&" + "start="+ startNumber +"&v=1.0"+extraFilter;
 		}
 		else
-			completeFilter = "https://ajax.googleapis.com/ajax/services/search/images?rsz=8&" + "start="+ pageNumber +"&v=1.0";
+			completeFilter = "https://ajax.googleapis.com/ajax/services/search/images?rsz=8&" + "start="+ startNumber +"&v=1.0";
 
 		if (searchQuery!=null && searchQuery.length()!=0)
 			completeFilter = completeFilter + "&q="+Uri.encode(searchQuery);
@@ -134,13 +136,20 @@ public class ImageSearchActivity extends Activity {
 				JSONArray imageJSONResults = null;
 				try {
 					imageJSONResults = response.getJSONObject("responseData").getJSONArray("results");
-					imageAdapter.addAll(ImageResult.convertfromJSONArray(imageJSONResults));
+					imageArrayAdapter.addAll(ImageResult.convertfromJSONArray(imageJSONResults));
 				} catch (JSONException e){
 					e.printStackTrace();
 				}
 			}
 		});
 	}	
+
+	private Boolean isNetworkAvailable() {
+		ConnectivityManager connectivityManager 
+		= (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+		NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+		return activeNetworkInfo != null && activeNetworkInfo.isConnectedOrConnecting();
+	}
 
 }
 

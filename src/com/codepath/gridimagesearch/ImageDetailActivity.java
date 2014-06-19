@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.os.Bundle;
 
 import com.loopj.android.image.SmartImageView;
+import com.squareup.picasso.Picasso;
 
 public class ImageDetailActivity extends Activity {
 
@@ -14,6 +15,7 @@ public class ImageDetailActivity extends Activity {
 
 		ImageResult detail= (ImageResult) getIntent().getSerializableExtra("result");
 		SmartImageView ivDetail = (SmartImageView) findViewById(R.id.ivDetail);
-		ivDetail.setImageUrl(detail.getFullUrl());
+//		ivDetail.setImageUrl(detail.getFullUrl());
+		Picasso.with(getBaseContext()).load(detail.getFullUrl()).into(ivDetail);
 	}
 }

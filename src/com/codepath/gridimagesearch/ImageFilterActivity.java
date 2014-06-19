@@ -63,7 +63,5 @@ public class ImageFilterActivity extends Activity {
 		setResult(RESULT_OK, data); // set result code and bundle data for response
 		finish(); // closes the activity, pass data to parent
 	}
-	
-
 
 }
